@@ -86,11 +86,12 @@ var snake_vertex= [];
 var snake_indice= [];
 var food_vertex = [];
 
-var food_o_x = 0.1;
-var food_o_y = 0.1;
+var food_o_x = 0.5;
+var food_o_y = 0.5;
 var food_z = 0.4;
 
 var fps=5;
+var render_id;
 
 //snake direction
 // 0: Up 
@@ -513,6 +514,7 @@ function render(whichTriSet)
 
 function food()
 {
+    food_vertex=[];
     //loading food array
     food_vertex.push(food_o_x, food_o_y, food_z);
     food_vertex.push(food_o_x, food_o_y, food_z+0.1);
@@ -615,16 +617,63 @@ function moveSnake ()
         var indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(snake_indice), gl.STATIC_DRAW);
-        
-        //gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer); 
-        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        
+                
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
 
         gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
         gl.drawElements(gl.TRIANGLES, snake_indice.length, gl.UNSIGNED_SHORT,0); // render
     }
+}
+
+function eat_food()
+{
+    // parseFloat(snake_o_x[0]).toPrecision(2);
+    // parseFloat(snake_o_y[0]).toPrecision(2);
+    // parseFloat(food_o_x).toPrecision(2);
+    // parseFloat(food_o_y).toPrecision(2);
+
+    if(snake_o_x[0].toFixed(1) == food_o_x.toFixed(1) && snake_o_y[0].toFixed(1) == food_o_y.toFixed(1))
+    {    
+        //console.log("EAT!");
+        snake_length++;
+        food_o_x= Math.random();
+        food_o_x= Math.floor(food_o_x*10)/10;
+        food_o_y= Math.random();
+        food_o_y= Math.floor(food_o_y*10)/10;
+
+        //food_o_x= food_o_x.toFixed(2);
+        //console.log(food_o_x.toFixed(2));
+        console.log(food_o_x);
+        console.log(food_o_y);
+        console.log(food_z);
+    }
+}
+
+function death_check()
+{
+    parseFloat(snake_o_x[0]).toPrecision(2);
+    parseFloat(snake_o_y[0]).toPrecision(2);
+
+    for(var i=1; i<snake_length; i++)
+    {
+        parseFloat(snake_o_x[i]).toPrecision(2);
+        parseFloat(snake_o_y[i]).toPrecision(2);
+
+        if((snake_o_x[0]==snake_o_x[i] && snake_o_y[0]==snake_o_y[i]) || (snake_o_x[0]<=0 || snake_o_x[0]>=0.9|| snake_o_y[0]<=0 || snake_o_y[0]>=0.9))
+        {
+            console.log("Death");
+            cancelAnimationFrame(render_id);
+            //alert("Score:"+snake_length);
+        }
+    }
+}
+function Game_Control()
+{
+    food();
+    moveSnake();
+    eat_food();
+    death_check();
 }
 
 //for fps:
@@ -634,7 +683,7 @@ function renderTriangles()
 {    
     setTimeout(function ()
     {
-    requestAnimationFrame(renderTriangles);
+        render_id=requestAnimationFrame(renderTriangles);
     
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers    
 
@@ -703,19 +752,9 @@ function renderTriangles()
             render(whichTriSet);
         }
     }
-    food();
-    moveSnake();
 
-    parseFloat(snake_o_x[0]).toPrecision(2);
-    parseFloat(snake_o_y[0]).toPrecision(2);
-    parseFloat(food_o_x).toPrecision(2);
-    parseFloat(food_o_y).toPrecision(2);
+    Game_Control();
 
-    if(snake_o_x[0].toFixed(2) == food_o_x.toFixed(2) && snake_o_y[0].toFixed(2) == food_o_y.toFixed(2))
-    {    
-        console.log("EAT!");
-        snake_length++;
-    }
     }, 1000/fps);
 } // end render triangles
 
