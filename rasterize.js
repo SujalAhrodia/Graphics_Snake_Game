@@ -77,13 +77,27 @@ var lightModel = 1;
 var viewMat;
 var pMat;
 
-var snake_o_x = 0.5;
-var snake_o_y = 0.5;
+var snake_length=3;
+var snake_o_x = [0.5,0.5, 0.5];
+var snake_o_y = [0.5,0.4, 0.3];
 var snake_z = 0.4;
+
+var snake_vertex= [];
+var snake_indice= [];
+var food_vertex = [];
 
 var food_o_x = 0.1;
 var food_o_y = 0.1;
 var food_z = 0.4;
+
+var fps=5;
+
+//snake direction
+// 0: Up 
+// 1: Right
+// 2: Down
+// 3: Left
+var dir = 0;
 
 var snakeTexture;
 var foodTexture;
@@ -500,14 +514,23 @@ function render(whichTriSet)
 function food()
 {
     //loading food array
-    var food_vertex = [food_o_x, food_o_y, food_z, 
-    food_o_x, food_o_y, food_z+0.1, 
-    food_o_x+0.1, food_o_y, food_z+0.1, 
-    food_o_x+0.1, food_o_y, food_z,
-    food_o_x, food_o_y+0.1, food_z, 
-    food_o_x, food_o_y+0.1, food_z+0.1, 
-    food_o_x+0.1, food_o_y+0.1, food_z+0.1, 
-    food_o_x+0.1, food_o_y+0.1, food_z];
+    food_vertex.push(food_o_x, food_o_y, food_z);
+    food_vertex.push(food_o_x, food_o_y, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.1, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.1, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z);
+
+    // food_vertex = [food_o_x, food_o_y, food_z, 
+    // food_o_x, food_o_y, food_z+0.1, 
+    // food_o_x+0.1, food_o_y, food_z+0.1, 
+    // food_o_x+0.1, food_o_y, food_z,
+    // food_o_x, food_o_y+0.1, food_z, 
+    // food_o_x, food_o_y+0.1, food_z+0.1, 
+    // food_o_x+0.1, food_o_y+0.1, food_z+0.1, 
+    // food_o_x+0.1, food_o_y+0.1, food_z];
 
     var food_indice = [0,1,2,0,2,3,
     0,4,7,0,3,7,
@@ -526,9 +549,6 @@ function food()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(food_indice), gl.STATIC_DRAW);
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, foodBuffer); 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, foodTexture);
 
@@ -536,52 +556,84 @@ function food()
     gl.drawElements(gl.TRIANGLES , food_indice.length,gl.UNSIGNED_SHORT,0); // render
 }
 
+//to move the body
+function moveBody()
+{
+    for(var i=snake_length-1; i>=1; i--)
+    {
+        snake_o_x[i] = snake_o_x[i-1];
+        snake_o_y[i] = snake_o_y[i-1];
+    }
+}
+
 //for implementing snake movement
 function moveSnake () 
 {
-    //loading snake array
-    var snake_vertex = [snake_o_x, snake_o_y, snake_z, 
-    snake_o_x, snake_o_y, snake_z+0.1, 
-    snake_o_x+0.1, snake_o_y, snake_z+0.1, 
-    snake_o_x+0.1, snake_o_y, snake_z,
-    snake_o_x, snake_o_y+0.1, snake_z, 
-    snake_o_x, snake_o_y+0.1, snake_z+0.1, 
-    snake_o_x+0.1, snake_o_y+0.1, snake_z+0.1, 
-    snake_o_x+0.1, snake_o_y+0.1, snake_z];
+    moveBody();
+    //console.log(snake_o_x.length);
+    switch(dir)
+    {
+        case 0:
+            snake_o_y[0]+=0.1;
+            break;
+        case 1:
+            snake_o_x[0]+=0.1;
+            break;
+        case 2:
+            snake_o_y[0]-=0.1;
+            break;
+        case 3:
+            snake_o_x[0]-=0.1;
+            break;
+    }
 
-    var snake_indice = [0,1,2,0,2,3,
-    0,4,7,0,3,7,
-    0,4,5,0,1,5,
-    1,5,6,1,2,6,
-    2,6,7,2,3,7,
-    4,5,6,4,6,7]
+    for(var i=0; i<snake_length; i++)
+    {
+        //loading snake array
+        snake_vertex = [snake_o_x[i], snake_o_y[i], snake_z, 
+        snake_o_x[i], snake_o_y[i], snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i], snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i], snake_z,
+        snake_o_x[i], snake_o_y[i]+0.1, snake_z, 
+        snake_o_x[i], snake_o_y[i]+0.1, snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z];
 
-    //binding snake buffer
-    var snakeBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(snake_vertex), gl.STATIC_DRAW);
+        snake_indice = [0,1,2,0,2,3,
+        0,4,7,0,3,7,
+        0,4,5,0,1,5,
+        1,5,6,1,2,6,
+        2,6,7,2,3,7,
+        4,5,6,4,6,7];
 
-    //binding snake indices
-    var indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(snake_indice), gl.STATIC_DRAW);
-    
-    gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer); 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
+        //binding snake buffer
+        var snakeBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(snake_vertex), gl.STATIC_DRAW);
 
-    gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
-    gl.drawElements(gl.TRIANGLES , snake_indice.length,gl.UNSIGNED_SHORT,0); // render
+        //binding snake indices
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(snake_indice), gl.STATIC_DRAW);
+        
+        //gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer); 
+        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
 
+        gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
+        gl.drawElements(gl.TRIANGLES, snake_indice.length, gl.UNSIGNED_SHORT,0); // render
+    }
 }
 
-
-
+//for fps:
+//https://www.kirupa.com/html5/animating_with_requestAnimationFrame.htm
 // render the loaded model
-function renderTriangles() {
-    
+function renderTriangles() 
+{    
+    setTimeout(function ()
+    {
     requestAnimationFrame(renderTriangles);
     
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers    
@@ -651,8 +703,20 @@ function renderTriangles() {
             render(whichTriSet);
         }
     }
-    moveSnake();
     food();
+    moveSnake();
+
+    parseFloat(snake_o_x[0]).toPrecision(2);
+    parseFloat(snake_o_y[0]).toPrecision(2);
+    parseFloat(food_o_x).toPrecision(2);
+    parseFloat(food_o_y).toPrecision(2);
+
+    if(snake_o_x[0].toFixed(2) == food_o_x.toFixed(2) && snake_o_y[0].toFixed(2) == food_o_y.toFixed(2))
+    {    
+        console.log("EAT!");
+        snake_length++;
+    }
+    }, 1000/fps);
 } // end render triangles
 
 /* MAIN -- HERE is where execution begins after window load */
@@ -961,35 +1025,6 @@ function Highlight(whichTriSet, scaleFactor)
 
 }
 
-function model_T(whichTriSet, Dir)
-{
-    var setCenter = Centroid(whichTriSet);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix,
-                    mat4.fromTranslation(mat4.create, Dir),
-                    inputTriangles[whichTriSet].mMatrix);
-} 
-
-function model_R(whichTriSet, axis, angle)
-{
-    var setCenter = Centroid(whichTriSet);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix, 
-                    mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), setCenter)),
-                    inputTriangles[whichTriSet].mMatrix);
-
-    //in Radian
-    var Angle = angle*Math.PI/180;
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix,
-                    mat4.fromRotation(mat4.create(), Angle, axis),
-                    inputTriangles[whichTriSet].mMatrix);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix, 
-                    mat4.fromTranslation(mat4.create(), setCenter),
-                    inputTriangles[whichTriSet].mMatrix);
-}
-
 function anti_Highlight()
 {
     if (triangleSelection[triangleSelection_index] == 1)
@@ -1039,210 +1074,6 @@ function inc_exp()
     }
 }
 
-function model_TLeft()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(-1.0,0.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-}
-
-function model_TRight()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(1.0,0.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-
-}
-
-function model_TBackward()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,0.0,-1.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-}
-
-function model_TForward()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,0.0,1.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-}
-
-function model_TUp()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,1.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-}
-
-function model_TDown()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,-1.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-    vec3.normalize(new_dir, new_dir);
-    vec3.scale(new_dir, new_dir, 0.03);
-
-    if(triangleSelection[triangleSelection_index] == 1)
-    {
-        model_T(triangleSelection_index, new_dir);
-    }
-}
-
-function model_yawLeft()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,1.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, 10);
-    }
-}
-
-function model_yawRight()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,1.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, -10);
-    }
-}
-
-function model_PitchUp()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(1.0,0.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, 10);
-    }
-}
-
-function model_PitchDown()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(1.0,0.0,0.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, -10);
-    }
-}
-
-function model_RollClock()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,0.0,1.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, -10);
-    }
-}
-
-function model_RollAClock()
-{
-    var orig_view = myLookAt(mat4.create(), origin_t, origin_tlookAtP, origin_tup);
-    var dir =  new vec4.fromValues(0.0,0.0,1.0,0.0);
-
-    vec4.transformMat4(dir, dir, orig_view);
-
-    var new_dir = vec3.fromValues(dir[0], dir[1], dir[2]);
-
-    vec3.normalize(new_dir, new_dir);
-
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        model_R(triangleSelection_index, new_dir, 10);
-    }
-}
 
 function moveThings(e)
 {   
@@ -1269,9 +1100,19 @@ function moveThings(e)
         case 'S': pitch_Down();
                     break;                    
         case 'ArrowLeft': 
+                    dir=3;
                     break;
 
         case 'ArrowRight': 
+                    dir=1;
+                    break;
+
+        case 'ArrowUp':
+                    dir=0;
+                    break;
+
+        case 'ArrowDown':
+                    dir=2;
                     break;
         case ' ': anti_Highlight();
                     break;
@@ -1288,31 +1129,6 @@ function moveThings(e)
                     break;
         case '3': inc_S();
                     break;
-        case 'k': model_TLeft();
-                    break;
-        case ';': model_TRight();
-                    break;
-        case 'o': model_TBackward();
-                    break;
-        case 'l': model_TForward();
-                    break;
-        case 'i': model_TUp();
-                    break;
-        case 'p': model_TDown();
-                    break;
-        case 'K': model_yawLeft();
-                    break;
-        case ':': model_yawRight();
-                    break;
-        case 'O': model_PitchUp();
-                    break;
-        case 'L': model_PitchDown();
-                    break;
-        case 'I': model_RollClock();
-                    break;
-        case 'P': model_RollAClock();
-                    break;
-
         default:    break;
 
     }
@@ -1357,10 +1173,18 @@ function setupTexture()
                 gl.bindTexture(gl.TEXTURE_2D, textures[whichTriSet]);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, textures[whichTriSet].image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.bindTexture(gl.TEXTURE_2D, null);
+
+                if(isPowerOf2(textures[whichTriSet].image.width) && isPowerOf2(textures[whichTriSet].image.height))
+                {
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                }
+                else
+                {    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
             }
          })(whichTriSet);
          textures[whichTriSet].image.src = "http://localhost:8000/" + inputTriangles[whichTriSet].material.texture;
@@ -1372,13 +1196,21 @@ function setupTexture()
                 gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, snakeTexture.image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.bindTexture(gl.TEXTURE_2D, null);
+
+                if(isPowerOf2(snakeTexture.image.width) && isPowerOf2(snakeTexture.image.height))
+                {
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                }
+                else
+                {    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
             }
          })(snakeTexture);
-         snakeTexture.image.src = "http://localhost:8000/ill.jpeg";
+         snakeTexture.image.src = "http://localhost:8000/yellow.png";
 
         foodTexture.image = new Image();
         foodTexture.image.crossOrigin = "Anonymous";
@@ -1387,10 +1219,18 @@ function setupTexture()
                 gl.bindTexture(gl.TEXTURE_2D, foodTexture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, foodTexture.image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.bindTexture(gl.TEXTURE_2D, null);
+
+                if(isPowerOf2(foodTexture.image.width) && isPowerOf2(foodTexture.image.height))
+                {
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                }
+                else
+                {    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
             }
          })(foodTexture);
          foodTexture.image.src = "http://localhost:8000/apple.jpg";
