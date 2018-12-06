@@ -77,13 +77,20 @@ var lightModel = 1;
 var viewMat;
 var pMat;
 
-var snake_o_x = [0.5];
-var snake_o_y = [0.5];
+var snake_length=3;
+var snake_o_x = [0.5,0.5, 0.5];
+var snake_o_y = [0.5,0.4, 0.3];
 var snake_z = 0.4;
+
+var snake_vertex= [];
+var snake_indice= [];
+var food_vertex = [];
 
 var food_o_x = 0.1;
 var food_o_y = 0.1;
 var food_z = 0.4;
+
+var fps=5;
 
 //snake direction
 // 0: Up 
@@ -507,14 +514,23 @@ function render(whichTriSet)
 function food()
 {
     //loading food array
-    var food_vertex = [food_o_x, food_o_y, food_z, 
-    food_o_x, food_o_y, food_z+0.1, 
-    food_o_x+0.1, food_o_y, food_z+0.1, 
-    food_o_x+0.1, food_o_y, food_z,
-    food_o_x, food_o_y+0.1, food_z, 
-    food_o_x, food_o_y+0.1, food_z+0.1, 
-    food_o_x+0.1, food_o_y+0.1, food_z+0.1, 
-    food_o_x+0.1, food_o_y+0.1, food_z];
+    food_vertex.push(food_o_x, food_o_y, food_z);
+    food_vertex.push(food_o_x, food_o_y, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.1, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.1, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z+0.1);
+    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z);
+
+    // food_vertex = [food_o_x, food_o_y, food_z, 
+    // food_o_x, food_o_y, food_z+0.1, 
+    // food_o_x+0.1, food_o_y, food_z+0.1, 
+    // food_o_x+0.1, food_o_y, food_z,
+    // food_o_x, food_o_y+0.1, food_z, 
+    // food_o_x, food_o_y+0.1, food_z+0.1, 
+    // food_o_x+0.1, food_o_y+0.1, food_z+0.1, 
+    // food_o_x+0.1, food_o_y+0.1, food_z];
 
     var food_indice = [0,1,2,0,2,3,
     0,4,7,0,3,7,
@@ -533,9 +549,6 @@ function food()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(food_indice), gl.STATIC_DRAW);
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, foodBuffer); 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, foodTexture);
 
@@ -543,73 +556,84 @@ function food()
     gl.drawElements(gl.TRIANGLES , food_indice.length,gl.UNSIGNED_SHORT,0); // render
 }
 
+//to move the body
+function moveBody()
+{
+    for(var i=snake_length-1; i>=1; i--)
+    {
+        snake_o_x[i] = snake_o_x[i-1];
+        snake_o_y[i] = snake_o_y[i-1];
+    }
+}
+
 //for implementing snake movement
 function moveSnake () 
 {
-    //snake_o_x[0]+=0.01;
-    //console.log(snake_o_x[0]);
-
+    moveBody();
+    //console.log(snake_o_x.length);
     switch(dir)
     {
         case 0:
-            snake_o_y[0]+=0.01;
+            snake_o_y[0]+=0.1;
             break;
         case 1:
-            snake_o_x[0]+=0.01;
+            snake_o_x[0]+=0.1;
             break;
         case 2:
-            snake_o_y[0]-=0.01;
+            snake_o_y[0]-=0.1;
             break;
         case 3:
-            snake_o_x[0]-=0.01;
+            snake_o_x[0]-=0.1;
             break;
     }
 
-    //loading snake array
-    var snake_vertex = [snake_o_x[0], snake_o_y[0], snake_z, 
-    snake_o_x[0], snake_o_y[0], snake_z+0.1, 
-    snake_o_x[0]+0.1, snake_o_y[0], snake_z+0.1, 
-    snake_o_x[0]+0.1, snake_o_y[0], snake_z,
-    snake_o_x[0], snake_o_y[0]+0.1, snake_z, 
-    snake_o_x[0], snake_o_y[0]+0.1, snake_z+0.1, 
-    snake_o_x[0]+0.1, snake_o_y[0]+0.1, snake_z+0.1, 
-    snake_o_x[0]+0.1, snake_o_y[0]+0.1, snake_z];
+    for(var i=0; i<snake_length; i++)
+    {
+        //loading snake array
+        snake_vertex = [snake_o_x[i], snake_o_y[i], snake_z, 
+        snake_o_x[i], snake_o_y[i], snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i], snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i], snake_z,
+        snake_o_x[i], snake_o_y[i]+0.1, snake_z, 
+        snake_o_x[i], snake_o_y[i]+0.1, snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z+0.1, 
+        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z];
 
-    //console.log(snake_vertex);
+        snake_indice = [0,1,2,0,2,3,
+        0,4,7,0,3,7,
+        0,4,5,0,1,5,
+        1,5,6,1,2,6,
+        2,6,7,2,3,7,
+        4,5,6,4,6,7];
 
-    var snake_indice = [0,1,2,0,2,3,
-    0,4,7,0,3,7,
-    0,4,5,0,1,5,
-    1,5,6,1,2,6,
-    2,6,7,2,3,7,
-    4,5,6,4,6,7]
+        //binding snake buffer
+        var snakeBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(snake_vertex), gl.STATIC_DRAW);
 
-    //binding snake buffer
-    var snakeBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(snake_vertex), gl.STATIC_DRAW);
+        //binding snake indices
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(snake_indice), gl.STATIC_DRAW);
+        
+        //gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer); 
+        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
 
-    //binding snake indices
-    var indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(snake_indice), gl.STATIC_DRAW);
-    
-    gl.bindBuffer(gl.ARRAY_BUFFER, snakeBuffer); 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, snakeTexture);
-
-    gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
-    gl.drawElements(gl.TRIANGLES , snake_indice.length,gl.UNSIGNED_SHORT,0); // render
-
+        gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
+        gl.drawElements(gl.TRIANGLES, snake_indice.length, gl.UNSIGNED_SHORT,0); // render
+    }
 }
 
-
-
+//for fps:
+//https://www.kirupa.com/html5/animating_with_requestAnimationFrame.htm
 // render the loaded model
-function renderTriangles() {
-    
+function renderTriangles() 
+{    
+    setTimeout(function ()
+    {
     requestAnimationFrame(renderTriangles);
     
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers    
@@ -679,12 +703,20 @@ function renderTriangles() {
             render(whichTriSet);
         }
     }
-    moveSnake();
     food();
-    if(snake_o_x[0]==food_o_x && snake_o_y[0]==food_o_y)
+    moveSnake();
+
+    parseFloat(snake_o_x[0]).toPrecision(2);
+    parseFloat(snake_o_y[0]).toPrecision(2);
+    parseFloat(food_o_x).toPrecision(2);
+    parseFloat(food_o_y).toPrecision(2);
+
+    if(snake_o_x[0].toFixed(2) == food_o_x.toFixed(2) && snake_o_y[0].toFixed(2) == food_o_y.toFixed(2))
     {    
-        console.log(snake_o_x[0], snake_o_y[0]);
+        console.log("EAT!");
+        snake_length++;
     }
+    }, 1000/fps);
 } // end render triangles
 
 /* MAIN -- HERE is where execution begins after window load */
@@ -1069,22 +1101,18 @@ function moveThings(e)
                     break;                    
         case 'ArrowLeft': 
                     dir=3;
-                    moveSnake();
                     break;
 
         case 'ArrowRight': 
                     dir=1;
-                    moveSnake();
                     break;
 
         case 'ArrowUp':
                     dir=0;
-                    moveSnake();
                     break;
 
         case 'ArrowDown':
                     dir=2;
-                    moveSnake()
                     break;
         case ' ': anti_Highlight();
                     break;
