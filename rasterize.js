@@ -41,8 +41,6 @@ var triangleBuffers = []; // this contains indices into vertexBuffers in triples
 var vertexNormalBuffers = []; //this contains vertex normals in triplets 
 var vertexUVBuffers= []; //this contains uvs in doubles
 
-var textures = []; //this contains textures for each triangle set
-
 //location of attributes
 var vertexPositionAttrib; // where to put position for vertex shader
 var vertexNormalAttrib;
@@ -77,17 +75,28 @@ var lightModel = 1;
 var viewMat;
 var pMat;
 
+//Main snake
 var snake_length=3;
-var snake_o_x = [0.5,0.5, 0.5];
-var snake_o_y = [0.5,0.4, 0.3];
+var snake_o_x = [0.3, 0.2, 0.1];
+var snake_o_y = [0.1, 0.1, 0.1];
 var snake_z = 0.4;
 
 var snake_vertex= [];
 var snake_indice= [];
+
+//NP snake
+var npsnake_length=3;
+var npsnake_x = [0.6, 0.7, 0.8];
+var npsnake_y = [0.6, 0.6, 0.6];
+var npsnake_z = 0.4;
+
+var npsnake_vertex= [];
+var npsnake_indice= [];
+
 var food_vertex = [];
 
-var food_o_x = 0.5;
-var food_o_y = 0.5;
+var food_o_x = 0.6;
+var food_o_y = 0.6;
 var food_z = 0.4;
 
 var fps=5;
@@ -98,10 +107,16 @@ var render_id;
 // 1: Right
 // 2: Down
 // 3: Left
-var dir = 0;
+var dir = 1;
+var np_dir = 1;
+var c_dir=0;
 
+//textures
 var snakeTexture;
 var foodTexture;
+var npsnakeTexture;
+var textures = []; //this contains textures for each triangle set
+
 // ASSIGNMENT HELPER FUNCTIONS
 
 // get the JSON file from the passed URL
@@ -511,6 +526,116 @@ function render(whichTriSet)
         gl.drawElements(gl.TRIANGLES , 3*triSetSizes[whichTriSet],gl.UNSIGNED_SHORT,0); // render
 }
 
+function init_npsnake()
+{
+    npsnake_length=3;
+    npsnake_x = [0.6, 0.7, 0.8];
+    npsnake_y = [0.6, 0.6, 0.6];
+    np_dir =1;
+}
+
+function moveNPBody()
+{
+    for(var i=npsnake_length-1; i>=1; i--)
+    {
+        npsnake_x[i] = npsnake_x[i-1];
+        npsnake_y[i] = npsnake_y[i-1];
+    }
+}
+
+//Np snake movement
+function moveNPSnake () 
+{
+    moveNPBody();
+    //console.log(snake_o_x.length);
+
+    if(c_dir == 5)
+    {
+        np_dir = Math.floor(Math.random()*(3-0)+0);
+        c_dir=0;
+    //console.log(np_dir);
+    }
+    switch(np_dir)
+    {
+        case 0:
+            if(np_dir!=2)
+                npsnake_y[0]+=0.1;
+            break;
+        case 1:
+            if(np_dir!=3)
+                npsnake_x[0]+=0.1;
+            break;
+        case 2:
+            if(np_dir!=0)
+                npsnake_y[0]-=0.1;
+            break;
+        case 3:
+            if(np_dir!=1)
+                npsnake_x[0]-=0.1;
+            break;
+    }
+
+    for(var i=0; i<npsnake_length; i++)
+    {
+        //loading snake array
+        npsnake_vertex = [npsnake_x[i], npsnake_y[i], npsnake_z, 
+        npsnake_x[i], npsnake_y[i], npsnake_z+0.1, 
+        npsnake_x[i]+0.1, npsnake_y[i], npsnake_z+0.1, 
+        npsnake_x[i]+0.1, npsnake_y[i], npsnake_z,
+        npsnake_x[i], npsnake_y[i]+0.1, npsnake_z, 
+        npsnake_x[i], npsnake_y[i]+0.1, npsnake_z+0.1, 
+        npsnake_x[i]+0.1, npsnake_y[i]+0.1, npsnake_z+0.1, 
+        npsnake_x[i]+0.1, npsnake_y[i]+0.1, npsnake_z];
+
+        npsnake_indice = [0,1,2,0,2,3,
+        0,4,7,0,3,7,
+        0,4,5,0,1,5,
+        1,5,6,1,2,6,
+        2,6,7,2,3,7,
+        4,5,6,4,6,7];
+
+        //binding snake buffer
+        var npsnakeBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, npsnakeBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(npsnake_vertex), gl.STATIC_DRAW);
+
+        //binding snake indices
+        var npindexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, npindexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(npsnake_indice), gl.STATIC_DRAW);
+                
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, npsnakeTexture);
+
+        gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); 
+        gl.drawElements(gl.TRIANGLES, npsnake_indice.length, gl.UNSIGNED_SHORT,0); // render
+    }
+}
+function eat_NP_food()
+{
+    if(npsnake_x[0].toFixed(1) == food_o_x.toFixed(1) && npsnake_y[0].toFixed(1) == food_o_y.toFixed(1))
+    {    
+        npsnake_length++;
+        food_o_x= Math.random();
+        food_o_x= Math.floor(food_o_x*10)/10;
+        food_o_y= Math.random();
+        food_o_y= Math.floor(food_o_y*10)/10;
+    }
+}
+
+function death_NP_check()
+{
+    for(var i=1; i<npsnake_length; i++)
+    {
+        if((npsnake_x[0]==npsnake_x[i] && npsnake_y[0]==npsnake_y[i]) || (npsnake_x[0]<=0 || npsnake_x[0]>=0.9|| npsnake_y[0]<=0 || npsnake_y[0]>=0.9))
+        {
+            console.log("Death");
+            //cancelAnimationFrame(render_id);
+            init_npsnake();
+            //alert("Score:"+snake_length);
+        }
+    }
+}
 
 function food()
 {
@@ -524,15 +649,6 @@ function food()
     food_vertex.push(food_o_x, food_o_y+0.1, food_z+0.1);
     food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z+0.1);
     food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z);
-
-    // food_vertex = [food_o_x, food_o_y, food_z, 
-    // food_o_x, food_o_y, food_z+0.1, 
-    // food_o_x+0.1, food_o_y, food_z+0.1, 
-    // food_o_x+0.1, food_o_y, food_z,
-    // food_o_x, food_o_y+0.1, food_z, 
-    // food_o_x, food_o_y+0.1, food_z+0.1, 
-    // food_o_x+0.1, food_o_y+0.1, food_z+0.1, 
-    // food_o_x+0.1, food_o_y+0.1, food_z];
 
     var food_indice = [0,1,2,0,2,3,
     0,4,7,0,3,7,
@@ -558,6 +674,14 @@ function food()
     gl.drawElements(gl.TRIANGLES , food_indice.length,gl.UNSIGNED_SHORT,0); // render
 }
 
+function init_snake()
+{
+    snake_length=3;
+    snake_o_x = [0.3, 0.2, 0.1];
+    snake_o_y = [0.1, 0.1, 0.1];
+    dir=1;
+    //renderTriangles();
+}
 //to move the body
 function moveBody()
 {
@@ -625,45 +749,35 @@ function moveSnake ()
         gl.drawElements(gl.TRIANGLES, snake_indice.length, gl.UNSIGNED_SHORT,0); // render
     }
 }
-
 function eat_food()
 {
-    // parseFloat(snake_o_x[0]).toPrecision(2);
-    // parseFloat(snake_o_y[0]).toPrecision(2);
-    // parseFloat(food_o_x).toPrecision(2);
-    // parseFloat(food_o_y).toPrecision(2);
-
     if(snake_o_x[0].toFixed(1) == food_o_x.toFixed(1) && snake_o_y[0].toFixed(1) == food_o_y.toFixed(1))
     {    
-        //console.log("EAT!");
         snake_length++;
         food_o_x= Math.random();
         food_o_x= Math.floor(food_o_x*10)/10;
         food_o_y= Math.random();
         food_o_y= Math.floor(food_o_y*10)/10;
-
-        //food_o_x= food_o_x.toFixed(2);
-        //console.log(food_o_x.toFixed(2));
-        console.log(food_o_x);
-        console.log(food_o_y);
-        console.log(food_z);
     }
 }
-
 function death_check()
 {
-    parseFloat(snake_o_x[0]).toPrecision(2);
-    parseFloat(snake_o_y[0]).toPrecision(2);
-
+    // for(var i=0; i<npsnake_length; i++)
+    // {
+    //     if(snake_o_x[0] == npsnake_x[i] || snake_o_y[0]==npsnake_y[i])
+    //     {
+    //         console.log("Death");
+    //         cancelAnimationFrame(render_id);
+    //         //init_snake();   
+    //     }
+    // }
     for(var i=1; i<snake_length; i++)
     {
-        parseFloat(snake_o_x[i]).toPrecision(2);
-        parseFloat(snake_o_y[i]).toPrecision(2);
-
         if((snake_o_x[0]==snake_o_x[i] && snake_o_y[0]==snake_o_y[i]) || (snake_o_x[0]<=0 || snake_o_x[0]>=0.9|| snake_o_y[0]<=0 || snake_o_y[0]>=0.9))
         {
             console.log("Death");
             cancelAnimationFrame(render_id);
+            init_snake();
             //alert("Score:"+snake_length);
         }
     }
@@ -675,6 +789,12 @@ function Game_Control()
     eat_food();
     death_check();
 }
+function Game_Control_NP()
+{
+    moveNPSnake();
+    eat_NP_food();
+    death_NP_check();
+}
 
 //for fps:
 //https://www.kirupa.com/html5/animating_with_requestAnimationFrame.htm
@@ -683,7 +803,7 @@ function renderTriangles()
 {    
     setTimeout(function ()
     {
-        render_id=requestAnimationFrame(renderTriangles);
+    render_id=requestAnimationFrame(renderTriangles);
     
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers    
 
@@ -753,7 +873,9 @@ function renderTriangles()
         }
     }
 
+    c_dir++;
     Game_Control();
+    Game_Control_NP();
 
     }, 1000/fps);
 } // end render triangles
@@ -1139,20 +1261,26 @@ function moveThings(e)
         case 'S': pitch_Down();
                     break;                    
         case 'ArrowLeft': 
-                    dir=3;
+                    if(dir!=1)
+                        dir=3;
                     break;
 
         case 'ArrowRight': 
-                    dir=1;
+                    if(dir!=3)
+                        dir=1;
                     break;
 
         case 'ArrowUp':
-                    dir=0;
+                    if(dir!=2)
+                        dir=0;
                     break;
 
         case 'ArrowDown':
-                    dir=2;
+                    if(dir!=0)
+                        dir=2;
                     break;
+        case 'Enter':
+                    renderTriangles();
         case ' ': anti_Highlight();
                     break;
 
@@ -1193,6 +1321,10 @@ function setupTexture()
         //food texture
         foodTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, foodTexture);
+
+        //np snake texture
+        npsnakeTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, npsnakeTexture);
 
         var level = 0;
         var internalFormat = gl.RGBA;
@@ -1272,7 +1404,30 @@ function setupTexture()
                 }
             }
          })(foodTexture);
-         foodTexture.image.src = "http://localhost:8000/apple.jpg";
+         foodTexture.image.src = "http://localhost:8000/cyan.jpg";
+
+        npsnakeTexture.image = new Image();
+        npsnakeTexture.image.crossOrigin = "Anonymous";
+        (function (npsnakeTexture){
+            npsnakeTexture.image.onload = function() {
+                gl.bindTexture(gl.TEXTURE_2D, npsnakeTexture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, npsnakeTexture.image);
+
+                if(isPowerOf2(npsnakeTexture.image.width) && isPowerOf2(npsnakeTexture.image.height))
+                {
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                }
+                else
+                {    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
+            }
+         })(npsnakeTexture);
+         npsnakeTexture.image.src = "http://localhost:8000/np.jpg";
     }
 }
 //
