@@ -4,9 +4,7 @@
 const WIN_Z = 0;  // default graphics window z coord in world space
 const WIN_LEFT = 0; const WIN_RIGHT = 1;  // default left and right x coords in world space
 const WIN_BOTTOM = 0; const WIN_TOP = 1;  // default top and bottom y coords in world space
-const INPUT_TRIANGLES_URL = "http://localhost:8000/triangles.json";
-//"https://ncsucgclass.github.io/prog4/triangles.json"; // triangles file loc
-const INPUT_ELLIPSOIDS_URL = "https://pages.github.ncsu.edu/cgclass/exercise5/ellipsoids.json"; // ellipsoids file loc
+const INPUT_TRIANGLES_URL = "http://localhost:8000/triangles.json"; // triangles file loc
 
 //Default Eye and Light positions
 var Eye = new vec3.fromValues(0.5,0.5,-0.45); // default eye position in world space
@@ -77,27 +75,27 @@ var pMat;
 
 //Main snake
 var snake_length=3;
-var snake_o_x = [0.3, 0.2, 0.1];
-var snake_o_y = [0.1, 0.1, 0.1];
-var snake_z = 0.4;
+var snake_o_x = [0.30, 0.20, 0.10];
+var snake_o_y = [0.10, 0.10, 0.10];
+var snake_z = 0.40;
 
 var snake_vertex= [];
 var snake_indice= [];
 
 //NP snake
 var npsnake_length=3;
-var npsnake_x = [0.5, 0.6, 0.7];
-var npsnake_y = [0.6, 0.6, 0.6];
-var npsnake_z = 0.4;
+var npsnake_x = [0.50, 0.60, 0.70];
+var npsnake_y = [0.60, 0.60, 0.60];
+var npsnake_z = 0.40;
 
 var npsnake_vertex= [];
 var npsnake_indice= [];
 
 var food_vertex = [];
 
-var food_o_x = 0.5;
-var food_o_y = 0.5;
-var food_z = 0.4;
+var food_o_x = 0.50;
+var food_o_y = 0.50;
+var food_z = 0.40;
 
 var fps=5;
 var render_id;
@@ -107,9 +105,11 @@ var render_id;
 // 1: Right
 // 2: Down
 // 3: Left
+
 var dir = 1;
 var np_dir = 1;
 var c_dir=0;
+var t_np_dir = 0;
 
 //textures
 var snakeTexture;
@@ -146,25 +146,8 @@ function getJSONFile(url,descr) {
 } // end get input json file
 
 // set up the webGL environment
-function setupWebGL() {
-
-    //create image canvas
-    // var imageCanvas = document.getElementById("myImageCanvas");
-    // var cw = imageCanvas.width;
-    // var ch = imageCanvas.height;
-    //  imageContext = imageCanvas.getContext("2d");
-
-    // var bgImage = new Image();
-    // bgImage.crossOrigin = "Anonymous";
-    // bgImage.src = "http://localhost:8000/bg.jpg";
-
-    // bgImage.onload = function()
-    // {
-    //     var iw = bgImage.width;
-    //     var ih = bgImage.height;
-    //     imageContext.drawImage(bgImage, 0, 0, iw, ih, 0, 0, cw, ch);
-    // }
-
+function setupWebGL() 
+{
     // Get the webglcanvas and context
     var webglCanvas = document.getElementById("myWebGLCanvas"); // create a js canvas
     gl = webglCanvas.getContext("webgl"); // get a webgl object from it
@@ -528,11 +511,11 @@ function render(whichTriSet)
 function init_npsnake()
 {
     npsnake_length=3;
-    npsnake_x = [0.6, 0.7, 0.8];
-    npsnake_y = [0.6, 0.6, 0.6];
+    npsnake_x = [0.60, 0.70, 0.80];
+    npsnake_y = [0.60, 0.60, 0.60];
     np_dir =1;
 }
-
+0
 function moveNPBody()
 {
     for(var i=npsnake_length-1; i>=1; i--)
@@ -542,34 +525,36 @@ function moveNPBody()
     }
 }
 
+function randomDir()
+{
+  if(c_dir == 2)
+    {
+        do{
+            t_np_dir = Math.floor(Math.random()*(3-0)+0);
+        }
+        while((np_dir+t_np_dir)%2 ==0 && np_dir!=t_np_dir)
+        np_dir=t_np_dir;
+        c_dir=0;
+    }  
+}
 //Np snake movement
 function moveNPSnake () 
 {
     moveNPBody();
-    //console.log(snake_o_x.length);
+    randomDir();
 
-    if(c_dir == 2)
-    {
-        np_dir = Math.floor(Math.random()*(3-0)+0);
-        c_dir=0;
-    //console.log(np_dir);
-    }
-    switch(np_dir)
+    switch(t_np_dir)
     {
         case 0:
-            if(np_dir!=2)
                 npsnake_y[0]+=0.05;
             break;
         case 1:
-            if(np_dir!=3)
                 npsnake_x[0]+=0.05;
             break;
         case 2:
-            if(np_dir!=0)
                 npsnake_y[0]-=0.05;
             break;
         case 3:
-            if(np_dir!=1)
                 npsnake_x[0]-=0.05;
             break;
     }
@@ -631,20 +616,15 @@ function death_NP_check()
     {
         if(npsnake_x[0] == snake_o_x[i] && npsnake_y[0] == snake_o_y[i])
         {
-            //console.log("Death");
-            cancelAnimationFrame(render_id);
-            init_npsnake();   
-            //init_snake();
+            init_npsnake(); 
+
         }
     }
     for(var i=1; i<npsnake_length; i++)
     {
-        if((npsnake_x[0]==npsnake_x[i] && npsnake_y[0]==npsnake_y[i]) || (npsnake_x[0]<=0 || npsnake_x[0]>=0.9|| npsnake_y[0]<=0 || npsnake_y[0]>=0.9))
+        if((npsnake_x[0]==npsnake_x[i] && npsnake_y[0]==npsnake_y[i]) || (npsnake_x[0]<=0 || npsnake_x[0]>=1|| npsnake_y[0]<=0 || npsnake_y[0]>=1))
         {
-            //console.log("Death");
-            //cancelAnimationFrame(render_id);
             init_npsnake();
-            //alert("Score:"+snake_length);
         }
     }
 }
@@ -689,8 +669,8 @@ function food()
 function init_snake()
 {
     snake_length=3;
-    snake_o_x = [0.3, 0.2, 0.1];
-    snake_o_y = [0.1, 0.1, 0.1];
+    snake_o_x = [0.30, 0.20, 0.10];
+    snake_o_y = [0.10, 0.10, 0.10];
     dir=1;
     //renderTriangles();
 }
@@ -775,7 +755,6 @@ function eat_food()
         tfood_o_y-= tfood_o_y%0.05;
         food_o_y= tfood_o_y;
     }
-    console.log(food_o_x, food_o_y);
 }
 function death_check()
 {
@@ -783,19 +762,19 @@ function death_check()
     {
         if(snake_o_x[0] == npsnake_x[i] && snake_o_y[0]==npsnake_y[i])
         {
-            console.log("Death");
+            //console.log("Death");
             cancelAnimationFrame(render_id);
-            init_snake();   
+            alert("Score:"+ snake_length);
         }
     }
     for(var i=1; i<snake_length; i++)
     {
         if((snake_o_x[0]==snake_o_x[i] && snake_o_y[0]==snake_o_y[i]) || (snake_o_x[0]<=0 || snake_o_x[0]>=1|| snake_o_y[0]<=0 || snake_o_y[0]>=1))
         {
-            console.log("Death");
+            //console.log("Death");
+            alert("Score:"+ snake_length);
             cancelAnimationFrame(render_id);
-            init_snake();
-            //alert("Score:"+snake_length);
+            break;
         }
     }
 }
@@ -1182,76 +1161,6 @@ function Centroid(whichTriSet)
     return centroid;
 }
 
-function Highlight(whichTriSet, scaleFactor)
-{
-    var setCenter = Centroid(whichTriSet);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix, 
-                    mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), setCenter)),
-                    inputTriangles[whichTriSet].mMatrix);
-
-    var scale = vec3.fromValues(scaleFactor, scaleFactor, scaleFactor);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix,
-                    mat4.fromScaling(mat4.create(),scale),
-                    inputTriangles[whichTriSet].mMatrix);
-
-    mat4.multiply(inputTriangles[whichTriSet].mMatrix,
-                    mat4.fromTranslation(mat4.create(),setCenter),
-                    inputTriangles[whichTriSet].mMatrix);
-    //scaled matrix
-    //console.log("scale:"+inputTriangles[whichTriSet].mMatrix);
-
-}
-
-function anti_Highlight()
-{
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        triangleSelection[triangleSelection_index] = 0;
-        Highlight(triangleSelection_index, 1/1.2);   
-    }
-}
-
-function inc_A()
-{   
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        inputTriangles[triangleSelection_index].Ka[0] = (inputTriangles[triangleSelection_index].Ka[0] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Ka[1] = (inputTriangles[triangleSelection_index].Ka[1] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Ka[2] = (inputTriangles[triangleSelection_index].Ka[2] + 0.1)%1;
-    }
-
-}
-
-function inc_D()
-{
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        inputTriangles[triangleSelection_index].Kd[0] = (inputTriangles[triangleSelection_index].Kd[0] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Kd[1] = (inputTriangles[triangleSelection_index].Kd[1] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Kd[2] = (inputTriangles[triangleSelection_index].Kd[2] + 0.1)%1;
-    }
-}
-
-function inc_S()
-{
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        inputTriangles[triangleSelection_index].Ks[0] = (inputTriangles[triangleSelection_index].Ks[0] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Ks[1] = (inputTriangles[triangleSelection_index].Ks[1] + 0.1)%1;
-        inputTriangles[triangleSelection_index].Ks[2] = (inputTriangles[triangleSelection_index].Ks[2] + 0.1)%1;
-    }
-}
-
-function inc_exp()
-{
-    if (triangleSelection[triangleSelection_index] == 1)
-    {
-        inputTriangles[triangleSelection_index].n = (inputTriangles[triangleSelection_index].n + 1)%20;
-       
-    }
-}
 
 
 function moveThings(e)
@@ -1297,22 +1206,12 @@ function moveThings(e)
                     if(dir!=0)
                         dir=2;
                     break;
-        case 'Enter':
+        case ' ': 
+                    init_snake();
                     renderTriangles();
-        case ' ': anti_Highlight();
                     break;
 
         case 'b': (lightModel == 1)? lightModel=0 : lightModel=1;
-                    break;
-
-        case 'n': inc_exp();
-                    break;
-
-        case '1': inc_A();
-                    break;
-        case '2': inc_D();
-                    break;
-        case '3': inc_S();
                     break;
         default:    break;
 
@@ -1452,7 +1351,6 @@ function setupTexture()
 //
 function main() 
 {
-    //document.getElementById('score').innerHTML = snake_length;
     window.addEventListener("keydown", moveThings, false);
     setupWebGL(); // set up the webGL environment
     loadTriangles(); // load in the triangles from tri file
