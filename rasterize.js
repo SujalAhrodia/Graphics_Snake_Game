@@ -9,7 +9,7 @@ const INPUT_TRIANGLES_URL = "http://localhost:8000/triangles.json";
 const INPUT_ELLIPSOIDS_URL = "https://pages.github.ncsu.edu/cgclass/exercise5/ellipsoids.json"; // ellipsoids file loc
 
 //Default Eye and Light positions
-var Eye = new vec3.fromValues(0.5,0.5,-0.5); // default eye position in world space
+var Eye = new vec3.fromValues(0.5,0.5,-0.45); // default eye position in world space
 var Light = new vec3.fromValues(0, 0.5, -0.5);
 
 //Default lookAt and up
@@ -86,7 +86,7 @@ var snake_indice= [];
 
 //NP snake
 var npsnake_length=3;
-var npsnake_x = [0.6, 0.7, 0.8];
+var npsnake_x = [0.5, 0.6, 0.7];
 var npsnake_y = [0.6, 0.6, 0.6];
 var npsnake_z = 0.4;
 
@@ -95,8 +95,8 @@ var npsnake_indice= [];
 
 var food_vertex = [];
 
-var food_o_x = 0.6;
-var food_o_y = 0.6;
+var food_o_x = 0.5;
+var food_o_y = 0.5;
 var food_z = 0.4;
 
 var fps=5;
@@ -118,7 +118,6 @@ var npsnakeTexture;
 var textures = []; //this contains textures for each triangle set
 
 // ASSIGNMENT HELPER FUNCTIONS
-
 // get the JSON file from the passed URL
 function getJSONFile(url,descr) {
     try {
@@ -150,21 +149,21 @@ function getJSONFile(url,descr) {
 function setupWebGL() {
 
     //create image canvas
-    var imageCanvas = document.getElementById("myImageCanvas");
-    var cw = imageCanvas.width;
-    var ch = imageCanvas.height;
-     imageContext = imageCanvas.getContext("2d");
+    // var imageCanvas = document.getElementById("myImageCanvas");
+    // var cw = imageCanvas.width;
+    // var ch = imageCanvas.height;
+    //  imageContext = imageCanvas.getContext("2d");
 
-    var bgImage = new Image();
-    bgImage.crossOrigin = "Anonymous";
-    bgImage.src = "http://localhost:8000/bg.jpg";
+    // var bgImage = new Image();
+    // bgImage.crossOrigin = "Anonymous";
+    // bgImage.src = "http://localhost:8000/bg.jpg";
 
-    bgImage.onload = function()
-    {
-        var iw = bgImage.width;
-        var ih = bgImage.height;
-        imageContext.drawImage(bgImage, 0, 0, iw, ih, 0, 0, cw, ch);
-    }
+    // bgImage.onload = function()
+    // {
+    //     var iw = bgImage.width;
+    //     var ih = bgImage.height;
+    //     imageContext.drawImage(bgImage, 0, 0, iw, ih, 0, 0, cw, ch);
+    // }
 
     // Get the webglcanvas and context
     var webglCanvas = document.getElementById("myWebGLCanvas"); // create a js canvas
@@ -549,7 +548,7 @@ function moveNPSnake ()
     moveNPBody();
     //console.log(snake_o_x.length);
 
-    if(c_dir == 5)
+    if(c_dir == 2)
     {
         np_dir = Math.floor(Math.random()*(3-0)+0);
         c_dir=0;
@@ -559,19 +558,19 @@ function moveNPSnake ()
     {
         case 0:
             if(np_dir!=2)
-                npsnake_y[0]+=0.1;
+                npsnake_y[0]+=0.05;
             break;
         case 1:
             if(np_dir!=3)
-                npsnake_x[0]+=0.1;
+                npsnake_x[0]+=0.05;
             break;
         case 2:
             if(np_dir!=0)
-                npsnake_y[0]-=0.1;
+                npsnake_y[0]-=0.05;
             break;
         case 3:
             if(np_dir!=1)
-                npsnake_x[0]-=0.1;
+                npsnake_x[0]-=0.05;
             break;
     }
 
@@ -579,13 +578,13 @@ function moveNPSnake ()
     {
         //loading snake array
         npsnake_vertex = [npsnake_x[i], npsnake_y[i], npsnake_z, 
-        npsnake_x[i], npsnake_y[i], npsnake_z+0.1, 
-        npsnake_x[i]+0.1, npsnake_y[i], npsnake_z+0.1, 
-        npsnake_x[i]+0.1, npsnake_y[i], npsnake_z,
-        npsnake_x[i], npsnake_y[i]+0.1, npsnake_z, 
-        npsnake_x[i], npsnake_y[i]+0.1, npsnake_z+0.1, 
-        npsnake_x[i]+0.1, npsnake_y[i]+0.1, npsnake_z+0.1, 
-        npsnake_x[i]+0.1, npsnake_y[i]+0.1, npsnake_z];
+        npsnake_x[i], npsnake_y[i], npsnake_z+0.05, 
+        npsnake_x[i]+0.05, npsnake_y[i], npsnake_z+0.05, 
+        npsnake_x[i]+0.05, npsnake_y[i], npsnake_z,
+        npsnake_x[i], npsnake_y[i]+0.05, npsnake_z, 
+        npsnake_x[i], npsnake_y[i]+0.05, npsnake_z+0.05, 
+        npsnake_x[i]+0.05, npsnake_y[i]+0.05, npsnake_z+0.05, 
+        npsnake_x[i]+0.05, npsnake_y[i]+0.05, npsnake_z];
 
         npsnake_indice = [0,1,2,0,2,3,
         0,4,7,0,3,7,
@@ -613,23 +612,36 @@ function moveNPSnake ()
 }
 function eat_NP_food()
 {
-    if(npsnake_x[0].toFixed(1) == food_o_x.toFixed(1) && npsnake_y[0].toFixed(1) == food_o_y.toFixed(1))
+    if(npsnake_x[0].toFixed(2) == food_o_x.toFixed(2) && npsnake_y[0].toFixed(2) == food_o_y.toFixed(2))
     {    
         npsnake_length++;
-        food_o_x= Math.random();
-        food_o_x= Math.floor(food_o_x*10)/10;
-        food_o_y= Math.random();
-        food_o_y= Math.floor(food_o_y*10)/10;
+        var tfood_o_x= Math.floor(Math.random()*100)/100;
+        tfood_o_x-= tfood_o_x%0.05;
+        food_o_x = tfood_o_x;
+
+        var tfood_o_y= Math.floor(Math.random()*100)/100;
+        tfood_o_y-= tfood_o_y%0.05;
+        food_o_y= tfood_o_y;
     }
 }
 
 function death_NP_check()
 {
+    for(var i=0; i<snake_length; i++)
+    {
+        if(npsnake_x[0] == snake_o_x[i] && npsnake_y[0] == snake_o_y[i])
+        {
+            //console.log("Death");
+            cancelAnimationFrame(render_id);
+            init_npsnake();   
+            //init_snake();
+        }
+    }
     for(var i=1; i<npsnake_length; i++)
     {
         if((npsnake_x[0]==npsnake_x[i] && npsnake_y[0]==npsnake_y[i]) || (npsnake_x[0]<=0 || npsnake_x[0]>=0.9|| npsnake_y[0]<=0 || npsnake_y[0]>=0.9))
         {
-            console.log("Death");
+            //console.log("Death");
             //cancelAnimationFrame(render_id);
             init_npsnake();
             //alert("Score:"+snake_length);
@@ -642,13 +654,13 @@ function food()
     food_vertex=[];
     //loading food array
     food_vertex.push(food_o_x, food_o_y, food_z);
-    food_vertex.push(food_o_x, food_o_y, food_z+0.1);
-    food_vertex.push(food_o_x+0.1, food_o_y, food_z+0.1);
-    food_vertex.push(food_o_x+0.1, food_o_y, food_z);
-    food_vertex.push(food_o_x, food_o_y+0.1, food_z);
-    food_vertex.push(food_o_x, food_o_y+0.1, food_z+0.1);
-    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z+0.1);
-    food_vertex.push(food_o_x+0.1, food_o_y+0.1, food_z);
+    food_vertex.push(food_o_x, food_o_y, food_z+0.05);
+    food_vertex.push(food_o_x+0.05, food_o_y, food_z+0.05);
+    food_vertex.push(food_o_x+0.05, food_o_y, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.05, food_z);
+    food_vertex.push(food_o_x, food_o_y+0.05, food_z+0.05);
+    food_vertex.push(food_o_x+0.05, food_o_y+0.05, food_z+0.05);
+    food_vertex.push(food_o_x+0.05, food_o_y+0.05, food_z);
 
     var food_indice = [0,1,2,0,2,3,
     0,4,7,0,3,7,
@@ -685,7 +697,7 @@ function init_snake()
 //to move the body
 function moveBody()
 {
-    for(var i=snake_length-1; i>=1; i--)
+    for(var i=snake_length; i>=1; i--)
     {
         snake_o_x[i] = snake_o_x[i-1];
         snake_o_y[i] = snake_o_y[i-1];
@@ -700,16 +712,16 @@ function moveSnake ()
     switch(dir)
     {
         case 0:
-            snake_o_y[0]+=0.1;
+            snake_o_y[0]+=0.05;
             break;
         case 1:
-            snake_o_x[0]+=0.1;
+            snake_o_x[0]+=0.05;
             break;
         case 2:
-            snake_o_y[0]-=0.1;
+            snake_o_y[0]-=0.05;
             break;
         case 3:
-            snake_o_x[0]-=0.1;
+            snake_o_x[0]-=0.05;
             break;
     }
 
@@ -717,13 +729,13 @@ function moveSnake ()
     {
         //loading snake array
         snake_vertex = [snake_o_x[i], snake_o_y[i], snake_z, 
-        snake_o_x[i], snake_o_y[i], snake_z+0.1, 
-        snake_o_x[i]+0.1, snake_o_y[i], snake_z+0.1, 
-        snake_o_x[i]+0.1, snake_o_y[i], snake_z,
-        snake_o_x[i], snake_o_y[i]+0.1, snake_z, 
-        snake_o_x[i], snake_o_y[i]+0.1, snake_z+0.1, 
-        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z+0.1, 
-        snake_o_x[i]+0.1, snake_o_y[i]+0.1, snake_z];
+        snake_o_x[i], snake_o_y[i], snake_z+0.05, 
+        snake_o_x[i]+0.05, snake_o_y[i], snake_z+0.05, 
+        snake_o_x[i]+0.05, snake_o_y[i], snake_z,
+        snake_o_x[i], snake_o_y[i]+0.05, snake_z, 
+        snake_o_x[i], snake_o_y[i]+0.05, snake_z+0.05, 
+        snake_o_x[i]+0.05, snake_o_y[i]+0.05, snake_z+0.05, 
+        snake_o_x[i]+0.05, snake_o_y[i]+0.05, snake_z];
 
         snake_indice = [0,1,2,0,2,3,
         0,4,7,0,3,7,
@@ -751,29 +763,34 @@ function moveSnake ()
 }
 function eat_food()
 {
-    if(snake_o_x[0].toFixed(1) == food_o_x.toFixed(1) && snake_o_y[0].toFixed(1) == food_o_y.toFixed(1))
+    if(snake_o_x[0].toFixed(2) == food_o_x.toFixed(2) && snake_o_y[0].toFixed(2) == food_o_y.toFixed(2))
     {    
         snake_length++;
-        food_o_x= Math.random();
-        food_o_x= Math.floor(food_o_x*10)/10;
-        food_o_y= Math.random();
-        food_o_y= Math.floor(food_o_y*10)/10;
+        
+        var tfood_o_x= Math.floor(Math.random()*100)/100;
+        tfood_o_x-= tfood_o_x%0.05;
+        food_o_x = tfood_o_x;
+
+        var tfood_o_y= Math.floor(Math.random()*100)/100;
+        tfood_o_y-= tfood_o_y%0.05;
+        food_o_y= tfood_o_y;
     }
+    console.log(food_o_x, food_o_y);
 }
 function death_check()
 {
-    // for(var i=0; i<npsnake_length; i++)
-    // {
-    //     if(snake_o_x[0] == npsnake_x[i] || snake_o_y[0]==npsnake_y[i])
-    //     {
-    //         console.log("Death");
-    //         cancelAnimationFrame(render_id);
-    //         //init_snake();   
-    //     }
-    // }
+    for(var i=0; i<npsnake_length; i++)
+    {
+        if(snake_o_x[0] == npsnake_x[i] && snake_o_y[0]==npsnake_y[i])
+        {
+            console.log("Death");
+            cancelAnimationFrame(render_id);
+            init_snake();   
+        }
+    }
     for(var i=1; i<snake_length; i++)
     {
-        if((snake_o_x[0]==snake_o_x[i] && snake_o_y[0]==snake_o_y[i]) || (snake_o_x[0]<=0 || snake_o_x[0]>=0.9|| snake_o_y[0]<=0 || snake_o_y[0]>=0.9))
+        if((snake_o_x[0]==snake_o_x[i] && snake_o_y[0]==snake_o_y[i]) || (snake_o_x[0]<=0 || snake_o_x[0]>=1|| snake_o_y[0]<=0 || snake_o_y[0]>=1))
         {
             console.log("Death");
             cancelAnimationFrame(render_id);
@@ -791,6 +808,7 @@ function Game_Control()
 }
 function Game_Control_NP()
 {
+    food();
     moveNPSnake();
     eat_NP_food();
     death_NP_check();
@@ -874,8 +892,8 @@ function renderTriangles()
     }
 
     c_dir++;
-    Game_Control();
     Game_Control_NP();
+    Game_Control();
 
     }, 1000/fps);
 } // end render triangles
@@ -1430,9 +1448,11 @@ function setupTexture()
          npsnakeTexture.image.src = "http://localhost:8000/np.jpg";
     }
 }
+
 //
 function main() 
 {
+    //document.getElementById('score').innerHTML = snake_length;
     window.addEventListener("keydown", moveThings, false);
     setupWebGL(); // set up the webGL environment
     loadTriangles(); // load in the triangles from tri file
